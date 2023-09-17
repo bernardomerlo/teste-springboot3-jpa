@@ -12,6 +12,8 @@ import com.bernardo.course.repositories.UserRepository;
 import com.bernardo.course.services.exceptions.DatabaseException;
 import com.bernardo.course.services.exceptions.ResourceNotFoundeException;
 
+import jakarta.persistence.EntityNotFoundException;
+
 @Service
 public class UserService {
 
@@ -38,15 +40,19 @@ public class UserService {
 			repository.deleteById(id);
 		} catch (ResourceNotFoundeException e) {
 			throw new ResourceNotFoundeException(id);
-		} catch(DataIntegrityViolationException e) {
+		} catch (DataIntegrityViolationException e) {
 			throw new DatabaseException(e.getMessage());
 		}
 	}
 
 	public User update(long id, User obj) {
-		User entity = repository.getReferenceById(id);
-		updateData(entity, obj);
-		return repository.save(entity);
+		try {
+			User entity = repository.getReferenceById(id);
+			updateData(entity, obj);
+			return repository.save(entity);
+		} catch (EntityNotFoundException e) {
+			throw new ResourceNotFoundeException(id);
+		}
 	}
 
 	private void updateData(User entity, User obj) {
